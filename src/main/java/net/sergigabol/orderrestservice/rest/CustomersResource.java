@@ -8,13 +8,14 @@ package net.sergigabol.orderrestservice.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -70,6 +71,28 @@ public class CustomersResource {
             }
         };
         
+    }
+    
+    @DELETE
+    @Path("/{id}")
+    public Response deleteCustomer(@PathParam("id") long custId){
+        customersBean.deleteCustomer(custId);
+        return Response.noContent().build();
+    }
+    
+    @PUT
+    @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_XML)
+    public Response updateCustomer(InputStream is, @PathParam("id") long id){
+        Customer c = readCustomer(is);
+        Customer current = customersBean.getCustomer(id);
+        //TODO canviar això: si no el troba potser millor que llenci excepció
+        if(current == null){
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        c.setId(id);
+        customersBean.saveCustomer(c);
+        return Response.noContent().build();
     }
     
     protected void writeCustomer(Customer cust, OutputStream out) throws IOException{
