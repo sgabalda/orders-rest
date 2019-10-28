@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package net.sergigabol.orderrestservice.business;
+package net.sergigabol.orderrestservice.business.customers;
 
 import java.util.List;
 import javax.ejb.Local;
