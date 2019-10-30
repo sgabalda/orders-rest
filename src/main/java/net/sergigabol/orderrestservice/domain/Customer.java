@@ -13,7 +13,8 @@ public class Customer {
     
     private Long id;
     private String firstName;
-    private String lastName;
+    private String lastName; 
+    private String nif;
     private String address;
 
     public Long getId() {
@@ -22,6 +23,14 @@ public class Customer {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getNif() {
+        return nif;
+    }
+
+    public void setNif(String nif) {
+        this.nif = nif;
     }
 
     public String getFirstName() {

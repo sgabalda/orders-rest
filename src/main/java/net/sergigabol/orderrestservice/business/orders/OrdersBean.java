@@ -5,14 +5,17 @@
  */
 package net.sergigabol.orderrestservice.business.orders;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
+import net.sergigabol.orderrestservice.business.customers.CustomersLocal;
 import net.sergigabol.orderrestservice.domain.Order;
 
 /**
@@ -22,6 +25,9 @@ import net.sergigabol.orderrestservice.domain.Order;
 @Singleton
 public class OrdersBean implements OrdersLocal{
     
+    @EJB
+    private CustomersLocal customersBean;
+    
     private Map<Long, Order> orders;
     private long idGenerator;
     
@@ -29,6 +35,13 @@ public class OrdersBean implements OrdersLocal{
     public void init(){
         orders = new HashMap<>();
         idGenerator = 0L;
+        
+        for(int i=1; i<11; i++){
+            Order o = new Order();
+            o.setDate(new Date());
+            o.setCustomer(customersBean.getCustomer((long)i));
+            saveOrder(o);
+        }
     }
 
     @Lock(LockType.WRITE)

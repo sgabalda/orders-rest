@@ -19,4 +19,5 @@ public interface CustomersLocal {
     public Customer getCustomer(Long id);
     public void deleteCustomer(Long id);
     public List<Customer> getCustomers(int offset, int end);
+    public List<Customer> getCustomers(int offset, int end, CustomersSearchCriteria cc);
 }

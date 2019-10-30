@@ -10,17 +10,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.util.List;
 import javax.ejb.EJB;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
+import javax.enterprise.context.RequestScoped;
+import javax.servlet.ServletContext;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.xml.parsers.DocumentBuilder;
@@ -38,14 +34,20 @@ import org.xml.sax.SAXException;
  *
  * @author gabalca
  */
-@Path("/customers")
-public class CustomersResource {
+@RequestScoped
+public class CustomersResource implements CustomersResourceInterface{
+    
+    private int defaultPaginationSize = 10;
 
     @EJB
     private CustomersLocal customersBean;
+    
+    @Context
+    public void getInitParams(ServletContext ctx){
+        defaultPaginationSize = Integer.parseInt(
+                ctx.getInitParameter("default-pagination-size"));
+    }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_XML)
     public Response createCustomer(InputStream is) {
 
         Customer c = readCustomer(is);
@@ -56,9 +58,27 @@ public class CustomersResource {
 
     }
     
-    @Path("/{id}")
-    @GET
-    @Produces(MediaType.APPLICATION_XML)
+    public StreamingOutput getAllCustomers(){
+        //TODO canviar per a que la paginació vagi amb QS
+        int start = 0;
+        int end = start + defaultPaginationSize;
+        List<Customer> customers = customersBean.getCustomers(start, end);
+        
+        return new StreamingOutput() {
+            @Override
+            public void write(OutputStream out) throws IOException, WebApplicationException {
+                try(PrintWriter pw = new PrintWriter(out)){
+                    pw.println("<customers>");
+                    for(Customer c:customers){
+                        writeCustomer(c,pw);
+                    }
+                    pw.println("</customers>");
+                }
+            }
+        };
+        
+    }
+    
     public StreamingOutput getCustomer(@PathParam("id") long custId){
         Customer customer = customersBean.getCustomer(custId);
 
@@ -67,22 +87,20 @@ public class CustomersResource {
         return new StreamingOutput() {
             @Override
             public void write(OutputStream out) throws IOException, WebApplicationException {
-                writeCustomer(customer, out);
+                try(PrintWriter pw = new PrintWriter(out)){
+                    writeCustomer(customer, pw);
+                }
             }
         };
         
     }
+
     
-    @DELETE
-    @Path("/{id}")
     public Response deleteCustomer(@PathParam("id") long custId){
         customersBean.deleteCustomer(custId);
         return Response.noContent().build();
     }
     
-    @PUT
-    @Path("/{id}")
-    @Consumes(MediaType.APPLICATION_XML)
     public Response updateCustomer(InputStream is, @PathParam("id") long id){
         Customer c = readCustomer(is);
         Customer current = customersBean.getCustomer(id);
@@ -95,14 +113,12 @@ public class CustomersResource {
         return Response.noContent().build();
     }
     
-    protected void writeCustomer(Customer cust, OutputStream out) throws IOException{
-        PrintWriter pw = new PrintWriter(out);
+    protected void writeCustomer(Customer cust, PrintWriter pw) throws IOException{
         pw.println("<customer id='"+cust.getId()+"'>");
         pw.println(" <first-name>"+cust.getFirstName()+"</first-name>");
         pw.println(" <last-name>"+cust.getLastName()+"</last-name>");
         pw.println(" <address>"+cust.getAddress()+"</address>");
         pw.println("</customer>");
-        pw.close();
     }
 
     protected Customer readCustomer(InputStream is) {
@@ -146,5 +162,15 @@ public class CustomersResource {
         <address>Juan</address>
     </customer>
      */
+
+    @Override
+    public StreamingOutput getCustomerByFullName(String first, String last) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public StreamingOutput getCustomerByNif(String nif) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
 }
