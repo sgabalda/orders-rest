@@ -56,16 +56,17 @@ public class CustomersResource implements CustomersResourceInterface {
         Customer c = readCustomer(is);
 
         customersBean.saveCustomer(c);
+        
 
         return Response.created(URI.create("/customers/" + c.getId())).build();
 
     }
 
-    public StreamingOutput getAllCustomers(int start, int size) {
-        //TODO canviar per a que la paginació vagi amb QS
-        if(size==0)size = defaultPaginationSize;
-        int end = start + size;
-        List<Customer> customers = customersBean.getCustomers(start, end);
+    public StreamingOutput getAllCustomers(CustomersSearchCriteria csc) {
+
+        System.out.println("Criteria is "+csc);
+        
+        List<Customer> customers = customersBean.getCustomers(csc);
 
         return new StreamingOutput() {
             @Override
@@ -171,10 +172,7 @@ public class CustomersResource implements CustomersResourceInterface {
         cc.setFirstNameEquals(first);
         cc.setLastNameEquals(first);
         List<Customer> result
-                = customersBean.getCustomers(
-                        0,
-                        1,
-                        cc);
+                = customersBean.getCustomers(cc);
         if (result.isEmpty()) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         } else {
@@ -194,10 +192,7 @@ public class CustomersResource implements CustomersResourceInterface {
         CustomersSearchCriteria cc = new CustomersSearchCriteria();
         cc.setNifEquals(nif);
         List<Customer> result
-                = customersBean.getCustomers(
-                        0,
-                        1,
-                        cc);
+                = customersBean.getCustomers(cc);
         if (result.isEmpty()) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         } else {

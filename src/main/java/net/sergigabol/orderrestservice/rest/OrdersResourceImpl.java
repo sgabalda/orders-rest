@@ -8,6 +8,8 @@ package net.sergigabol.orderrestservice.rest;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import net.sergigabol.orderrestservice.business.orders.OrdersLocal;
 import net.sergigabol.orderrestservice.domain.LineItem;
 import net.sergigabol.orderrestservice.domain.Order;
@@ -29,18 +31,25 @@ public class OrdersResourceImpl implements OrdersResource{
     }
 
     @Override
-    public List<Order> getAllOrders(String excludeCanceled) {
+    public Response getAllOrders(String excludeCanceled) {
         System.out.println("getting orders with excl:"+excludeCanceled);
         boolean excludeCanceledBool = Boolean.valueOf(excludeCanceled);
         if(customerId!=null){
-            return ordersBean.getOrdersByCustomer(customerId, 0, 10,excludeCanceledBool);
+            return Response
+                    .ok(ordersBean.getOrdersByCustomer(customerId, 0, 10,excludeCanceledBool))
+                    .build();
         }
-        return ordersBean.getAllOrders(0, 10,excludeCanceledBool);
+        return Response
+                    .ok(ordersBean.getAllOrders(0, 10,excludeCanceledBool))
+                .build();
     }
 
     @Override
-    public void newOrder(Order o) {
+    public Response newOrder(Order o) {
         ordersBean.saveOrder(o);
+        return Response
+                .created(UriBuilder.fromPath("/orders/{id}").build(o.getId()))
+                .build();
     }
 
     @Override

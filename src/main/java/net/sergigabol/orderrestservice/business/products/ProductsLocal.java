@@ -20,5 +20,5 @@ public interface ProductsLocal {
     void saveProduct(Product p);
     void deleteProduct(Long productId);
     Product getProductById(Long productId);
-    List<Product> getAllProducts(int offset, int end);
+    List<Product> getAllProducts(int offset, int end, List<String> orderBy);
 }

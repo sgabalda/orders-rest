@@ -14,6 +14,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import net.sergigabol.orderrestservice.domain.LineItem;
 import net.sergigabol.orderrestservice.domain.Order;
 
@@ -27,11 +28,11 @@ public interface OrdersResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     //Amb el matrixParam no funciona?
-    public List<Order> getAllOrders(@QueryParam("excludecanceled") String excludeCanceled);
+    public Response getAllOrders(@QueryParam("excludecanceled") String excludeCanceled);
     
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void newOrder(Order o);
+    public Response newOrder(Order o);
     
     @Path("/{id}/lineitems")
     @GET

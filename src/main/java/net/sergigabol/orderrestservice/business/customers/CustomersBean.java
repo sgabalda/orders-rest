@@ -55,6 +55,9 @@ public class CustomersBean implements CustomersLocal {
     @Override
     public Customer getCustomer(Long id) {
         System.out.println("Obtenint el customer " + id);
+        if(!customers.containsKey(id)){
+            throw new CustomerNotFoundException();
+        }
         return customers.get(id);
     }
     
@@ -65,22 +68,19 @@ public class CustomersBean implements CustomersLocal {
         customers.remove(id);
     }
     
-    @Lock(LockType.READ)
-    @Override
-    public List<Customer> getCustomers(int offset, int end) {
-        return customers.values().stream()
-                .limit(end)
-                .skip(offset)
-                .collect(Collectors.toList());
-    }
     
     @Lock(LockType.READ)
     @Override
-    public List<Customer> getCustomers(int offset, int end, CustomersSearchCriteria cc) {
-        Stream<Customer> cust = customers.values().stream();
+    public List<Customer> getCustomers(CustomersSearchCriteria cc) {
+        Stream<Customer> cust = customers.values().stream()
+                .peek(c -> System.out.println("trying "+c));
         
         if (cc.getFirstNameEquals() != null) {
-            cust = cust.filter(c -> cc.getFirstNameEquals().equals(c.getFirstName()));
+            cust = cust.filter(c -> {
+                    System.out.println("Checking "+cc.getFirstNameEquals() +
+                            " == "+c.getFirstName());
+                 return cc.getFirstNameEquals().equals(c.getFirstName());
+                    });
         }
         if (cc.getLastNameEquals() != null) {
             cust = cust.filter(c -> cc.getLastNameEquals().equals(c.getLastName()));
@@ -90,8 +90,9 @@ public class CustomersBean implements CustomersLocal {
         }
         
         return cust
-                .limit(end)
-                .skip(offset)
+                .peek(c -> System.out.println("passed "+c))
+                .limit(cc.getEnd())
+                .skip(cc.getStart())
                 .collect(Collectors.toList());
     }
     

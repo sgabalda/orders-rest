@@ -6,6 +6,7 @@
 package net.sergigabol.orderrestservice.rest;
 
 import java.io.InputStream;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,6 +19,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
+import net.sergigabol.orderrestservice.business.customers.CustomersSearchCriteria;
 
 /**
  *
@@ -32,7 +34,8 @@ public interface CustomersResourceInterface {
     
     @GET
     @Produces(MediaType.APPLICATION_XML)
-    public StreamingOutput getAllCustomers(@QueryParam("start") int start, @QueryParam("size") int size);
+    public StreamingOutput getAllCustomers(
+            @BeanParam CustomersSearchCriteria csc);
 
     @DELETE
     @Path("/{id}")
