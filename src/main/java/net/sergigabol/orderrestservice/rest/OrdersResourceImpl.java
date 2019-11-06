@@ -9,6 +9,7 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
 import net.sergigabol.orderrestservice.business.orders.OrdersLocal;
+import net.sergigabol.orderrestservice.domain.LineItem;
 import net.sergigabol.orderrestservice.domain.Order;
 
 /**
@@ -21,9 +22,20 @@ public class OrdersResourceImpl implements OrdersResource{
     @EJB
     OrdersLocal ordersBean;
     
+    private Long customerId;
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
     @Override
-    public List<Order> getAllOrders() {
-        return ordersBean.getAllOrders(0, 10);
+    public List<Order> getAllOrders(String excludeCanceled) {
+        System.out.println("getting orders with excl:"+excludeCanceled);
+        boolean excludeCanceledBool = Boolean.valueOf(excludeCanceled);
+        if(customerId!=null){
+            return ordersBean.getOrdersByCustomer(customerId, 0, 10,excludeCanceledBool);
+        }
+        return ordersBean.getAllOrders(0, 10,excludeCanceledBool);
     }
 
     @Override
@@ -34,6 +46,12 @@ public class OrdersResourceImpl implements OrdersResource{
     @Override
     public void exempleLock() {
         
+    }
+
+    @Override
+    public List<LineItem> getOrderLineItems(long orderId) {
+        //TODO implement
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

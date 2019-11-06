@@ -14,6 +14,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
@@ -31,7 +32,7 @@ public interface CustomersResourceInterface {
     
     @GET
     @Produces(MediaType.APPLICATION_XML)
-    public StreamingOutput getAllCustomers();
+    public StreamingOutput getAllCustomers(@QueryParam("start") int start, @QueryParam("size") int size);
 
     @DELETE
     @Path("/{id}")
@@ -56,10 +57,15 @@ public interface CustomersResourceInterface {
             @PathParam("last") String last);
     
     //fara match si la URI es /customers/hola/altre
+    //@Path("/{nif: \\d{8}[A-Z]{1}}")
     @Path("/{nif: .+}")
     @GET
     @Produces(MediaType.APPLICATION_XML)
     public StreamingOutput getCustomerByNif(
             @PathParam("nif") String nif);
+    
+    
+    @Path("/{id}/orders")
+    public Object getOrdersSubresource(@PathParam("id") long customerId);
     
 }

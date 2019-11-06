@@ -40,6 +40,7 @@ public class OrdersBean implements OrdersLocal{
             Order o = new Order();
             o.setDate(new Date());
             o.setCustomer(customersBean.getCustomer((long)i));
+            o.setCanceled(i%3==0);
             saveOrder(o);
         }
     }
@@ -67,8 +68,10 @@ public class OrdersBean implements OrdersLocal{
 
     @Lock(LockType.READ)
     @Override
-    public List<Order> getAllOrders(int offset, int end) {
+    public List<Order> getAllOrders(int offset, int end,boolean excludeCanceled) {
         return orders.values().stream()
+                //si excludeCancel es false, passen totes, si es true, les que no estan cancelades
+                .filter(o -> excludeCanceled?!o.isCanceled():true)  
                 .limit(end)
                 .skip(offset)  
                 .collect(Collectors.toList());
@@ -76,10 +79,12 @@ public class OrdersBean implements OrdersLocal{
 
     @Lock(LockType.READ)
     @Override
-    public List<Order> getOrdersByCustomer(Long customerId, int offset, int end) {
+    public List<Order> getOrdersByCustomer(Long customerId, int offset, int end,boolean excludeCanceled) {
         
         return orders.values().stream()
-                .filter(o -> o.getCustomer().getId()==customerId)
+                .filter(o -> o.getCustomer().getId().equals(customerId))
+                //si excludeCancel es false, passen totes, si es true, les que no estan cancelades
+                .filter(o -> excludeCanceled?!o.isCanceled():true)  
                 .limit(end)
                 .skip(offset)  
                 .collect(Collectors.toList());

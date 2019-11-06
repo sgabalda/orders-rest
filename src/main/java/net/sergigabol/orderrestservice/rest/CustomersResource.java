@@ -13,6 +13,8 @@ import java.net.URI;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
@@ -23,6 +25,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import net.sergigabol.orderrestservice.business.customers.CustomersLocal;
+import net.sergigabol.orderrestservice.business.customers.CustomersSearchCriteria;
 import net.sergigabol.orderrestservice.domain.Customer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,15 +38,15 @@ import org.xml.sax.SAXException;
  * @author gabalca
  */
 @RequestScoped
-public class CustomersResource implements CustomersResourceInterface{
-    
+public class CustomersResource implements CustomersResourceInterface {
+
     private int defaultPaginationSize = 10;
 
     @EJB
     private CustomersLocal customersBean;
-    
+
     @Context
-    public void getInitParams(ServletContext ctx){
+    public void getInitParams(ServletContext ctx) {
         defaultPaginationSize = Integer.parseInt(
                 ctx.getInitParameter("default-pagination-size"));
     }
@@ -57,67 +60,65 @@ public class CustomersResource implements CustomersResourceInterface{
         return Response.created(URI.create("/customers/" + c.getId())).build();
 
     }
-    
-    public StreamingOutput getAllCustomers(){
+
+    public StreamingOutput getAllCustomers(int start, int size) {
         //TODO canviar per a que la paginació vagi amb QS
-        int start = 0;
-        int end = start + defaultPaginationSize;
+        if(size==0)size = defaultPaginationSize;
+        int end = start + size;
         List<Customer> customers = customersBean.getCustomers(start, end);
-        
+
         return new StreamingOutput() {
             @Override
             public void write(OutputStream out) throws IOException, WebApplicationException {
-                try(PrintWriter pw = new PrintWriter(out)){
+                try (PrintWriter pw = new PrintWriter(out)) {
                     pw.println("<customers>");
-                    for(Customer c:customers){
-                        writeCustomer(c,pw);
+                    for (Customer c : customers) {
+                        writeCustomer(c, pw);
                     }
                     pw.println("</customers>");
                 }
             }
         };
-        
+
     }
-    
-    public StreamingOutput getCustomer(@PathParam("id") long custId){
+
+    public StreamingOutput getCustomer(@PathParam("id") long custId) {
         Customer customer = customersBean.getCustomer(custId);
 
         //return Response.ok(customer).build();
-        
         return new StreamingOutput() {
             @Override
             public void write(OutputStream out) throws IOException, WebApplicationException {
-                try(PrintWriter pw = new PrintWriter(out)){
+                try (PrintWriter pw = new PrintWriter(out)) {
                     writeCustomer(customer, pw);
                 }
             }
         };
-        
+
     }
 
-    
-    public Response deleteCustomer(@PathParam("id") long custId){
+    public Response deleteCustomer(@PathParam("id") long custId) {
         customersBean.deleteCustomer(custId);
         return Response.noContent().build();
     }
-    
-    public Response updateCustomer(InputStream is, @PathParam("id") long id){
+
+    public Response updateCustomer(InputStream is, @PathParam("id") long id) {
         Customer c = readCustomer(is);
         Customer current = customersBean.getCustomer(id);
         //TODO canviar això: si no el troba potser millor que llenci excepció
-        if(current == null){
+        if (current == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);
         }
         c.setId(id);
         customersBean.saveCustomer(c);
         return Response.noContent().build();
     }
-    
-    protected void writeCustomer(Customer cust, PrintWriter pw) throws IOException{
-        pw.println("<customer id='"+cust.getId()+"'>");
-        pw.println(" <first-name>"+cust.getFirstName()+"</first-name>");
-        pw.println(" <last-name>"+cust.getLastName()+"</last-name>");
-        pw.println(" <address>"+cust.getAddress()+"</address>");
+
+    protected void writeCustomer(Customer cust, PrintWriter pw) throws IOException {
+        pw.println("<customer id='" + cust.getId() + "'>");
+        pw.println(" <first-name>" + cust.getFirstName() + "</first-name>");
+        pw.println(" <last-name>" + cust.getLastName() + "</last-name>");
+        pw.println(" <address>" + cust.getAddress() + "</address>");
         pw.println("</customer>");
     }
 
@@ -139,7 +140,7 @@ public class CustomersResource implements CustomersResourceInterface{
                 if (n.getNodeType() == Node.ELEMENT_NODE) {
                     //String name = n.getNodeName();
                     Element e = (Element) nodes.item(i);
-                    
+
                     if (e.getTagName().equals("first-name")) {
                         customer.setFirstName(e.getTextContent());
                     } else if (e.getTagName().equals("last-name")) {
@@ -155,6 +156,7 @@ public class CustomersResource implements CustomersResourceInterface{
             throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
         }
     }
+
     /*
     <customer id="xx">
         <first-name>Juan</first-name>
@@ -165,12 +167,61 @@ public class CustomersResource implements CustomersResourceInterface{
 
     @Override
     public StreamingOutput getCustomerByFullName(String first, String last) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        CustomersSearchCriteria cc = new CustomersSearchCriteria();
+        cc.setFirstNameEquals(first);
+        cc.setLastNameEquals(first);
+        List<Customer> result
+                = customersBean.getCustomers(
+                        0,
+                        1,
+                        cc);
+        if (result.isEmpty()) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        } else {
+            return new StreamingOutput() {
+                @Override
+                public void write(OutputStream out) throws IOException, WebApplicationException {
+                    try (PrintWriter pw = new PrintWriter(out)) {
+                        writeCustomer(result.get(0), pw);
+                    }
+                }
+            };
+        }
     }
 
     @Override
     public StreamingOutput getCustomerByNif(String nif) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        CustomersSearchCriteria cc = new CustomersSearchCriteria();
+        cc.setNifEquals(nif);
+        List<Customer> result
+                = customersBean.getCustomers(
+                        0,
+                        1,
+                        cc);
+        if (result.isEmpty()) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        } else {
+            return new StreamingOutput() {
+                @Override
+                public void write(OutputStream out) throws IOException, WebApplicationException {
+                    try (PrintWriter pw = new PrintWriter(out)) {
+                        writeCustomer(result.get(0), pw);
+                    }
+                }
+            };
+        }
+    }
+    
+    @Inject
+    private Instance<OrdersResourceImpl> orderResInstance;
+
+    @Override
+    public Object getOrdersSubresource(long customerId) {
+        
+        OrdersResourceImpl result = orderResInstance.get();
+        
+        result.setCustomerId(customerId);
+        return result;
     }
 
 }

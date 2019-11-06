@@ -19,6 +19,6 @@ public interface OrdersLocal {
     void saveOrder(Order o);
     void deleteOrder(Long orderId);
     Order getOrderById(Long orderId);
-    List<Order> getAllOrders(int offset, int end);
-    List<Order> getOrdersByCustomer(Long customerId,int offset, int end);
+    List<Order> getAllOrders(int offset, int end,boolean excludeCanceled);
+    List<Order> getOrdersByCustomer(Long customerId,int offset, int end,boolean excludeCanceled);
 }
