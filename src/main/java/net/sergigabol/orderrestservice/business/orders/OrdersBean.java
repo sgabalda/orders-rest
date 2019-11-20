@@ -51,6 +51,7 @@ public class OrdersBean implements OrdersLocal{
         if(o.getId()==null){
             o.setId(++idGenerator);
         }
+        o.setDate(new Date());
         orders.put(o.getId(), o);
     }
 

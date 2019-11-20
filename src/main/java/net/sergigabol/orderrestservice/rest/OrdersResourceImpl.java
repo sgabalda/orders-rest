@@ -6,9 +6,18 @@
 package net.sergigabol.orderrestservice.rest;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.container.ConnectionCallback;
+import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
@@ -35,7 +44,7 @@ public class OrdersResourceImpl implements OrdersResource{
         this.customerId = customerId;
     }
     
-    
+        
 
     @Override
     public Response getAllOrders(String excludeCanceled) {
@@ -105,5 +114,76 @@ public class OrdersResourceImpl implements OrdersResource{
                 .tag(etag)
                 .build();
     }
+
+    @Override
+    public Response saveOrder(Order order) {
+        // mirar si ja existeix
+        Order actual = ordersBean.getOrderById(order.getId());
+        if(actual==null){
+            throw new NotFoundException();
+        }
+        EntityTag etag = new EntityTag(String.valueOf(actual.hashCode()));
+        Response.ResponseBuilder preconditions 
+                = request.evaluatePreconditions(etag);
+        
+        if(preconditions !=null){
+            //el etag no es el mateix!
+            return preconditions.build();
+        }
+        
+        ordersBean.saveOrder(order);
+        
+        return Response.noContent().build();
+    }
+    
+    @Resource
+    ManagedExecutorService executorService;
+
+    @Override
+    public void processOrder(long orderId, AsyncResponse response) {
+        
+        response.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable thrwbl) {
+                //log s¡ha acabat de processar la resposta.
+            }
+        });
+        response.register(new ConnectionCallback() {
+            @Override
+            public void onDisconnect(AsyncResponse ar) {
+                
+            }
+        });
+        
+        response.setTimeout(10, TimeUnit.SECONDS);
+        response.setTimeoutHandler(new TimeoutHandler() {
+            @Override
+            public void handleTimeout(AsyncResponse ar) {
+                
+            }
+        });
+
+        executorService.execute( () -> {
+                try{
+                    Order o = ordersBean.getOrderById(orderId);
+                    try {
+                        //processar la comanda
+                        Thread.sleep(1000);
+                        //response.cancel();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(OrdersResourceImpl.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    Response resp = Response.ok(o)
+                            .tag(String.valueOf(o.hashCode()))
+                            .build();
+
+                    response.resume(resp);
+                }catch(Exception e){
+                    response.resume(e);
+                }
+            });
+    }
+    
+    
     
 }
