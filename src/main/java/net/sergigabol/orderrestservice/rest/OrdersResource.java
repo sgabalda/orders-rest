@@ -38,6 +38,11 @@ public interface OrdersResource {
     @GET
     public List<LineItem> getOrderLineItems(@PathParam("id") long orderId);
     
+    @Path("/{id}")
+    @GET
+    public Response getOrder(@PathParam("id") long orderId);
+    
+    
     @LOCK
     public void exempleLock();
 

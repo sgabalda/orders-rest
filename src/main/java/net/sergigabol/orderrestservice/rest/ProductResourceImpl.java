@@ -22,6 +22,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Link;
@@ -87,6 +88,7 @@ public class ProductResourceImpl implements ProductResource{
     
     @Override
     public Response getProduct(long productId) {
+        System.out.println("Getting product with id "+productId);
         Product p = productsBean.getProductById(productId);
         
         Variant v1 = new Variant(MediaType.APPLICATION_XML_TYPE, Locale.ENGLISH, "gzip");
@@ -110,10 +112,16 @@ public class ProductResourceImpl implements ProductResource{
             
             p.setLink(Arrays.asList(delete,update));
             
+            CacheControl cc = new CacheControl();
+            cc.setMaxAge(3600);
+            cc.setPrivate(false);
+            cc.setNoTransform(true);
+            
             return Response.ok(p)
                     .links(delete,update)
                     .type(respVariant.getMediaType())
                     .language(respVariant.getLanguage())
+                    .cacheControl(cc)
                     //.encoding(respVariant.getEncoding())
                     .expires(new Date(ZonedDateTime.now().plusHours(1).toInstant().toEpochMilli()))
                     .build();
@@ -127,7 +135,17 @@ public class ProductResourceImpl implements ProductResource{
         System.out.println("En el text");
         Product p = productsBean.getProductById(productId);
         if(p!=null){
-            return Response.ok(p.toString()).build();
+            
+            CacheControl cc = new CacheControl();
+            cc.setMaxAge(3600);
+            cc.setPrivate(false);
+            cc.setNoTransform(true);
+            
+            return Response
+                    .ok(p.toString())
+                    .cacheControl(cc)
+                    .expires(new Date(ZonedDateTime.now().plusHours(1).toInstant().toEpochMilli()))
+                    .build();
         }else{
             throw new NotFoundException();
         }

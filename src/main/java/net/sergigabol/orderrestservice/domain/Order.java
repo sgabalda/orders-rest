@@ -8,6 +8,7 @@ package net.sergigabol.orderrestservice.domain;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -68,5 +69,52 @@ public class Order {
     public void setCanceled(boolean canceled) {
         this.canceled = canceled;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.id);
+        hash = 79 * hash + Objects.hashCode(this.total);
+        hash = 79 * hash + Objects.hashCode(this.date);
+        hash = 79 * hash + Objects.hashCode(this.customer);
+        hash = 79 * hash + Objects.hashCode(this.lineItems);
+        hash = 79 * hash + (this.canceled ? 1 : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Order other = (Order) obj;
+        if (this.canceled != other.canceled) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.total, other.total)) {
+            return false;
+        }
+        if (!Objects.equals(this.date, other.date)) {
+            return false;
+        }
+        if (!Objects.equals(this.customer, other.customer)) {
+            return false;
+        }
+        if (!Objects.equals(this.lineItems, other.lineItems)) {
+            return false;
+        }
+        return true;
+    }
+    
+    
     
 }
