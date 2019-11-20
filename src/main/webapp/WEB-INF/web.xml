@@ -13,4 +13,13 @@
         <param-name>default-pagination-size</param-name>
         <param-value>5</param-value>
     </context-param>
+    <!--<security-constraint>
+        <web-resource-collection>
+            
+        </web-resource-collection>
+    </security-constraint>
+    <login-config>
+        <auth-method></auth-method>
+    </login-config>
+        -->
 </web-app>

@@ -20,6 +20,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import net.sergigabol.orderrestservice.domain.LineItem;
 import net.sergigabol.orderrestservice.domain.Order;
+import net.sergigabol.orderrestservice.rest.filters.ApplyLogFilter;
+import net.sergigabol.orderrestservice.rest.filters.MaxAge;
 
 /**
  *
@@ -43,6 +45,8 @@ public interface OrdersResource {
     
     @Path("/{id}")
     @GET
+    @ApplyLogFilter
+    @MaxAge(500)
     public Response getOrder(@PathParam("id") long orderId);
     
     @Path("/{id}")

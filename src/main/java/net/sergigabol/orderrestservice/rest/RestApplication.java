@@ -6,7 +6,11 @@
 package net.sergigabol.orderrestservice.rest;
 
 import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Configurable;
+import javax.ws.rs.core.Context;
+import net.sergigabol.orderrestservice.rest.filters.MethodChangeFilter;
 
 /**
  *
@@ -15,5 +19,11 @@ import javax.ws.rs.core.Application;
 @ApplicationPath("/rest")
 public class RestApplication extends Application{
 
+    /*
+    public RestApplication(@Context Configurable configurable){
+        //si volem configurar el filtre programaticament
+        //configurable.register(MethodChangeFilter.class,Priorities.HEADER_DECORATOR);
+    }
+*/
     
 }

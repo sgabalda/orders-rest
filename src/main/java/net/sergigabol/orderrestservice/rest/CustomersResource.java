@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.security.Principal;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
@@ -20,6 +21,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.StreamingOutput;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -102,8 +104,15 @@ public class CustomersResource implements CustomersResourceInterface {
         customersBean.deleteCustomer(custId);
         return Response.noContent().build();
     }
+    
+    @Context
+    SecurityContext securityCtx;
 
+    @Override
     public Response updateCustomer(InputStream is, @PathParam("id") long id) {
+        
+        Principal p =securityCtx.getUserPrincipal();
+        
         Customer c = readCustomer(is);
         Customer current = customersBean.getCustomer(id);
         //TODO canviar això: si no el troba potser millor que llenci excepció

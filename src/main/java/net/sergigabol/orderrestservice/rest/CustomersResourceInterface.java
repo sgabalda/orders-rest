@@ -15,11 +15,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import net.sergigabol.orderrestservice.business.customers.CustomersSearchCriteria;
+import net.sergigabol.orderrestservice.rest.filters.ApplyLogFilter;
+import net.sergigabol.orderrestservice.rest.filters.MaxAge;
 
 /**
  *
@@ -34,6 +35,7 @@ public interface CustomersResourceInterface {
     
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @ApplyLogFilter
     public StreamingOutput getAllCustomers(
             @BeanParam CustomersSearchCriteria csc);
 
@@ -50,6 +52,7 @@ public interface CustomersResourceInterface {
     @Path("/{id: \\d+}")
     @GET
     @Produces(MediaType.APPLICATION_XML)
+    @MaxAge(1000)
     public StreamingOutput getCustomer(@PathParam("id") long custId);
     
     @Path("/{first}-{last}")
