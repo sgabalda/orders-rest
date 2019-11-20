@@ -18,6 +18,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import net.sergigabol.orderrestservice.domain.Product;
 
 /**
@@ -39,8 +40,13 @@ public interface ProductResource {
 
     @GET
     @Path("/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Product getProduct(@PathParam("id") long productId);
+    @Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
+    public Response getProduct(@PathParam("id") long productId);
+    
+    @GET
+    @Path("/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getProductAsText(@PathParam("id") long productId);
     
     @PUT
     @Path("/{id}/image")

@@ -10,16 +10,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Link;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Variant;
 import net.sergigabol.orderrestservice.business.products.ProductsLocal;
 import net.sergigabol.orderrestservice.domain.Product;
 
@@ -69,9 +79,58 @@ public class ProductResourceImpl implements ProductResource{
         productsBean.saveProduct(p);
     }
 
+    @Context
+    HttpHeaders headers;
+    
+    @Context
+    Request request;
+    
     @Override
-    public Product getProduct(long productId) {
-        return productsBean.getProductById(productId);
+    public Response getProduct(long productId) {
+        Product p = productsBean.getProductById(productId);
+        
+        Variant v1 = new Variant(MediaType.APPLICATION_XML_TYPE, Locale.ENGLISH, "gzip");
+        Variant v2 = new Variant(MediaType.APPLICATION_JSON_TYPE, new Locale("es"), "deflate");
+        
+        List<Variant> variants = Arrays.asList(v1,v2);
+        
+        Variant respVariant = request.selectVariant(variants);
+        
+        System.out.println("En el JSON o XML");
+        if(p!=null){
+            
+            Link delete = Link.fromUriBuilder(uriInfo.getAbsolutePathBuilder())
+                    .rel("delete")
+                    .type("DELETE")
+                    .build();
+            Link update = Link.fromUriBuilder(uriInfo.getAbsolutePathBuilder())
+                    .rel("update")
+                    .type("PUT")
+                    .build();
+            
+            p.setLink(Arrays.asList(delete,update));
+            
+            return Response.ok(p)
+                    .links(delete,update)
+                    .type(respVariant.getMediaType())
+                    .language(respVariant.getLanguage())
+                    //.encoding(respVariant.getEncoding())
+                    .expires(new Date(ZonedDateTime.now().plusHours(1).toInstant().toEpochMilli()))
+                    .build();
+        }else{
+            throw new NotFoundException();
+        }
+    }
+
+    @Override
+    public Response getProductAsText(long productId) {
+        System.out.println("En el text");
+        Product p = productsBean.getProductById(productId);
+        if(p!=null){
+            return Response.ok(p.toString()).build();
+        }else{
+            throw new NotFoundException();
+        }
     }
     
 }
